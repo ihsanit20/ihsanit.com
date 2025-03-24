@@ -15,11 +15,20 @@ use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
+    private function allowRegistration(): bool
+    {
+        return User::count() === 0;
+    }
+
     /**
      * Show the registration page.
      */
-    public function create(): Response
+    public function create(): Response|RedirectResponse
     {
+        if (!$this->allowRegistration()) {
+            return redirect('/');
+        }
+
         return Inertia::render('auth/Register');
     }
 
@@ -30,10 +39,14 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        if (!$this->allowRegistration()) {
+            return redirect('/');
+        }
+
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name' => 'required|string|max:20',
+            'email' => 'required|string|lowercase|email|max:50|unique:'.User::class,
+            'password' => ['required', 'confirmed', Rules\Password::min(8)->mixedCase()->numbers()],
         ]);
 
         $user = User::create([
