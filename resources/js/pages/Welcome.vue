@@ -56,11 +56,11 @@ import { Head, Link } from '@inertiajs/vue3';
             <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
                 <div class="rounded-2xl bg-white p-6 shadow">
                     <h3 class="mb-2 text-xl font-bold">🎓 LMS</h3>
-                    <p class="text-sm text-gray-600">শিক্ষা প্রতিষ্ঠানগুলোর জন্য সম্পূর্ণ লার্নিং সল্যুশন।</p>
+                    <p class="text-sm text-gray-600">অনলাইন - অফলাইন সম্পূর্ণ লার্নিং সল্যুশন।</p>
                 </div>
                 <div class="rounded-2xl bg-white p-6 shadow">
-                    <h3 class="mb-2 text-xl font-bold">🏫 School Management</h3>
-                    <p class="text-sm text-gray-600">স্কুল পরিচালনার জন্য আধুনিক সফটওয়্যার।</p>
+                    <h3 class="mb-2 text-xl font-bold">🏫 Madrasah Management</h3>
+                    <p class="text-sm text-gray-600">মাদ্রাসা পরিচালনার জন্য আধুনিক সফটওয়্যার।</p>
                 </div>
                 <div class="rounded-2xl bg-white p-6 shadow">
                     <h3 class="mb-2 text-xl font-bold">🛒 E-commerce</h3>

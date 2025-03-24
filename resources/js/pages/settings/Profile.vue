@@ -102,7 +102,7 @@ const submit = () => {
                 </form>
             </div>
 
-            <DeleteUser />
+            <DeleteUser v-if="false" />
         </SettingsLayout>
     </AppLayout>
 </template>
