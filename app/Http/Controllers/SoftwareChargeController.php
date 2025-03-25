@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\BkashPayment;
 use App\Models\SoftwareCharge;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -9,10 +10,12 @@ use Inertia\Response;
 
 class SoftwareChargeController extends Controller
 {
+    use BkashPayment; 
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
         $softwareCharges = SoftwareCharge::query()
             ->select([
@@ -37,51 +40,43 @@ class SoftwareChargeController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function payment($website, $month, $amount)
     {
-        //
-    }
+        $this->setAccount('primary');
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $paymentID = request()->paymentID;
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(SoftwareCharge $softwareCharge)
-    {
-        //
-    }
+        $amount = number_format($amount, 2);
+        $invoice_number = sprintf('%s - %s-%s', $website, $month, str_replace(['.', '-'], '', microtime(true)));
+        $callback_url = route('software-charges.payment', [$website, $month, $amount]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(SoftwareCharge $softwareCharge)
-    {
-        //
-    }
+        if(!$paymentID) {
+            
+            $data = $this->createPayment($amount, $invoice_number, $callback_url);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SoftwareCharge $softwareCharge)
-    {
-        //
-    }
+            return redirect($data->bkashURL);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SoftwareCharge $softwareCharge)
-    {
-        //
+        $status = request()->status;
+
+        if($paymentID && $status == 'success') {
+            $response = $this->executePayment($paymentID);
+
+            if(($response->transactionStatus ?? '') == 'Completed') {
+                $trxID = $response->trxID ?? $invoice_number;
+
+                SoftwareCharge::create([
+                    'website' => $website,
+                    'month' => $month,
+                    'paid_amount' => $amount,
+                    'paid_at' => now(),
+                    'trx_id' => $trxID,
+                    'response' => $response,
+                ]);
+            }
+
+        }
+
+        return redirect('https://' . $website . '/finance/software-charge');
     }
 }

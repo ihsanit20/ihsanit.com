@@ -15,5 +15,8 @@ Route::get('dashboard', function () {
 Route::resource('/software-charges', SoftwareChargeController::class)
     ->middleware(['auth', 'verified']);
 
+Route::get('software-charges/{website}/{month}/{amount}/payment', [SoftwareChargeController::class, 'payment'])
+    ->name('software-charges.payment');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
