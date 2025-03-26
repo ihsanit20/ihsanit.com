@@ -40,21 +40,30 @@ class SoftwareChargeController extends Controller
         ]);
     }
 
-    public function payment($website, $month, $amount)
+    public function payment($month, $amount, $website = null)
     {
         $this->setAccount('primary');
 
+        $website = $website ?? $this->getClientDomainFromRequest(request());
+        $month = date('Y-m', strtotime($month)); // Ensure the month is in 'YYYY-MM' format
+        $amount = number_format($amount, 2, '.', '');
+
+        // return [$website, $month, $amount];
+
+        $invoice_number = strtoupper(preg_replace('/[.\-:]/', '', sprintf('%s-M%s-T%s', $website, $month, (string) microtime(true))));
+        
         $paymentID = request()->paymentID;
 
-        $amount = number_format($amount, 2);
-        $invoice_number = sprintf('%s - %s-%s', $website, $month, str_replace(['.', '-'], '', microtime(true)));
-        $callback_url = route('software-charges.payment', [$website, $month, $amount]);
-
         if(!$paymentID) {
+            $callback_url = route('software-charges.payment', [$month, $amount, $website]);
             
-            $data = $this->createPayment($amount, $invoice_number, $callback_url);
+            try {
+                $data = $this->createPayment($amount, $invoice_number, $callback_url);
 
-            return redirect($data->bkashURL);
+                return redirect($data["bkashURL"]);
+            } catch (\Exception $e) {
+                dd($e->getMessage());
+            }
         }
 
         $status = request()->status;
@@ -74,9 +83,29 @@ class SoftwareChargeController extends Controller
                     'response' => $response,
                 ]);
             }
-
         }
 
-        return redirect('https://' . $website . '/finance/software-charge');
+        return redirect('http://' . $website . '/finance/software-charge');
+    }
+
+    public function history($website = null)
+    {
+        $softwareCharges = SoftwareCharge::query()
+            ->select([
+                'id',
+                'website',
+                'month',
+                'paid_amount',
+                'trx_id',
+                'paid_at',
+            ])
+            ->where('website', $website ?? $this->getClientDomainFromRequest(request()))
+            ->when(request('month'), function ($query, $month) {
+                return $query->where('month', $month);
+            })
+            ->latest()
+            ->get();
+
+        return response()->json($softwareCharges);
     }
 }

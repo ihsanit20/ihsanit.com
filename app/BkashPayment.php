@@ -73,6 +73,11 @@ trait BkashPayment
     {
         $account = $this->getAccount();
 
+        $amount = number_format($amount, 2, '.', '');
+
+        // dd($account, $amount, $invoice_number, $callback_url);
+        // dd(config("bkash.accounts.{$account}"));
+
         try {
             $response = Http::acceptJson()
                 ->contentType('application/json')
@@ -94,14 +99,14 @@ trait BkashPayment
                 throw new \ErrorException("bKash API request failed with status code: " . $response->status());
             }
 
-            $data = $response->object();
+            $data = $response->json();
 
-            if (!isset($data->paymentID)) {
-                throw new \ErrorException("Payment creation failed. No payment ID received.");
+            if (!isset($data["paymentID"])) {
+                throw new \ErrorException("Payment creation failed. No payment ID received with status code: " . $data["statusCode"]);
             }
 
-            if (!isset($data->bkashURL)) {
-                throw new \ErrorException("Payment creation failed. No bkash URL received.");
+            if (!isset($data["bkashURL"])) {
+                throw new \ErrorException("Payment creation failed. No bkash URL received with status code: " . $data["statusCode"]);
             }
 
             return $data;
